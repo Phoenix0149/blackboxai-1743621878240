@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital System - Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    body {
+      background-image: url('https://images.pexels.com/photos/236380/pexels-photo-236380.jpeg');
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center">
+  <div class="bg-white bg-opacity-90 p-8 rounded-lg shadow-lg w-full max-w-md">
+    <div class="text-center mb-8">
+      <i class="fas fa-hospital text-4xl text-blue-500 mb-2"></i>
+      <h1 class="text-3xl font-bold text-gray-800">Hospital System</h1>
+      <p class="text-gray-600">Staff Login</p>
+    </div>
+    <form id="loginForm" class="space-y-4">
+      <div>
+        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+        <input type="text" id="username" name="username" required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div>
+        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+        <input type="password" id="password" name="password" required
+          class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+      </div>
+      <div>
+        <button type="submit"
+          class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+          Login
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    function showError(message) {
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'mt-4 p-3 bg-red-100 text-red-700 rounded-md text-sm';
+      errorDiv.textContent = message;
+      
+      const form = document.getElementById('loginForm');
+      const existingError = form.querySelector('.bg-red-100');
+      if (existingError) {
+        form.removeChild(existingError);
+      }
+      
+      form.appendChild(errorDiv);
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const loginBtn = document.querySelector('#loginForm button[type="submit"]');
+      
+      // Show loading state
+      loginBtn.disabled = true;
+      loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Logging in...';
+
+      try {
+        console.log('Attempting login to:', window.location.origin);
+        const apiUrl = window.location.hostname === 'localhost' 
+          ? 'http://localhost:8000/login' 
+          : '/login';
+          
+        console.log('Using API URL:', apiUrl);
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({ username, password })
+        });
+        console.log('Response status:', response.status);
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+          throw new Error(data.message || 'Login failed');
+        }
+
+        if (data.success) {
+          window.location.href = '/dashboard.html';
+        } else {
+          showError(data.message || 'Invalid username or password');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        showError(error.message.includes('Failed to fetch') 
+          ? 'Cannot connect to server. Please try again later.'
+          : error.message || 'Login failed');
+      } finally {
+        // Reset button state
+        loginBtn.disabled = false;
+        loginBtn.innerHTML = 'Login';
+      }
+    });
+  </script>
+</body>
+</html>
