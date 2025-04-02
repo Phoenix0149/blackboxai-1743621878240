@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital System - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+  <div class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow">
+      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div class="flex items-center">
+          <i class="fas fa-hospital text-2xl text-blue-500 mr-2"></i>
+          <h1 class="text-xl font-bold text-gray-800">Hospital Dashboard</h1>
+        </div>
+        <div>
+          <button id="logoutBtn" class="text-gray-600 hover:text-gray-800">
+            <i class="fas fa-sign-out-alt mr-1"></i> Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <!-- Critical Alerts Section -->
+      <div id="alertsSection" class="mb-8 p-4 bg-red-100 border-l-4 border-red-500 hidden">
+        <div class="flex items-center">
+          <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>
+          <h2 class="text-lg font-semibold text-gray-800">Critical Vitals Alert</h2>
+        </div>
+        <div id="alertsList" class="mt-2"></div>
+      </div>
+
+      <!-- Patient Management -->
+      <div class="bg-white shadow rounded-lg mb-8">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <div class="flex justify-between items-center">
+            <h2 class="text-lg font-semibold text-gray-800">Patient Management</h2>
+            <button id="addPatientBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+              <i class="fas fa-plus mr-1"></i> Add Patient
+            </button>
+          </div>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ward</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bed</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Disease</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nurse</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="patientsTable" class="bg-white divide-y divide-gray-200">
+              <!-- Patients will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Vitals Monitoring -->
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-800">Vitals Monitoring</h2>
+        </div>
+        <div class="p-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white p-4 rounded-lg border border-gray-200">
+              <h3 class="text-md font-medium text-gray-800 mb-2">Respiration Rate</h3>
+              <canvas id="respirationChart" height="200"></canvas>
+            </div>
+            <div class="bg-white p-4 rounded-lg border border-gray-200">
+              <h3 class="text-md font-medium text-gray-800 mb-2">Pulse Rate</h3>
+              <canvas id="pulseChart" height="200"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Patient Form Modal -->
+  <div id="patientModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+      <div class="px-4 py-3 border-b border-gray-200">
+        <h2 id="modalTitle" class="text-lg font-semibold text-gray-800">Add Patient</h2>
+      </div>
+      <form id="patientForm" class="p-4">
+        <input type="hidden" id="patientId">
+        <div class="space-y-4">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+            <input type="text" id="name" name="name" required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          <div>
+            <label for="ward" class="block text-sm font-medium text-gray-700">Ward</label>
+            <input type="text" id="ward" name="ward" required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          <div>
+            <label for="bed" class="block text-sm font-medium text-gray-700">Bed</label>
+            <input type="text" id="bed" name="bed" required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          <div>
+            <label for="disease" class="block text-sm font-medium text-gray-700">Disease</label>
+            <input type="text" id="disease" name="disease" required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+          </div>
+          <div>
+            <label for="nurse" class="block text-sm font-medium text-gray-700">Assigned Nurse</label>
+            <input type="text" id="nurse" name="nurse" required
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+        <div class="mt-6 flex justify-end space-x-3">
+          <button type="button" id="cancelBtn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+            Cancel
+          </button>
+          <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+            Save
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const logoutBtn = document.getElementById('logoutBtn');
+    const addPatientBtn = document.getElementById('addPatientBtn');
+    const patientsTable = document.getElementById('patientsTable');
+    const patientForm = document.getElementById('patientForm');
+    const patientModal = document.getElementById('patientModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const alertsSection = document.getElementById('alertsSection');
+    const alertsList = document.getElementById('alertsList');
+
+    // Charts
+    const respirationCtx = document.getElementById('respirationChart').getContext('2d');
+    const pulseCtx = document.getElementById('pulseChart').getContext('2d');
+
+    // Event Listeners
+    logoutBtn.addEventListener('click', () => {
+      window.location.href = '/index.html';
+    });
+
+    addPatientBtn.addEventListener('click', () => {
+      document.getElementById('modalTitle').textContent = 'Add Patient';
+      document.getElementById('patientId').value = '';
+      patientForm.reset();
+      patientModal.classList.remove('hidden');
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      patientModal.classList.add('hidden');
+    });
+
+    // Initialize Charts
+    const respirationChart = new Chart(respirationCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Respiration Rate',
+          data: [],
+          borderColor: 'rgb(75, 192, 192)',
+          tension: 0.1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: false,
+            suggestedMin: 0,
+            suggestedMax: 40
+          }
+        }
+      }
+    });
+
+    const pulseChart = new Chart(pulseCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Pulse Rate',
+          data: [],
+          borderColor: 'rgb(255, 99, 132)',
+          tension: 0.1
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: false,
+            suggestedMin: 40,
+            suggestedMax: 150
+          }
+        }
+      }
+    });
+
+    // Load patients on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchPatients();
+      checkCriticalVitals();
+      // Simulate vitals updates every 5 seconds
+      setInterval(simulateVitalsUpdate, 5000);
+    });
+
+    // Fetch patients from API
+    async function fetchPatients() {
+      try {
+        const response = await fetch('http://localhost:8000/patients');
+        const patients = await response.json();
+        renderPatients(patients);
+      } catch (error) {
+        console.error('Error fetching patients:', error);
+      }
+    }
+
+    // Render patients in table
+    function renderPatients(patients) {
+      patientsTable.innerHTML = '';
+      patients.forEach(patient => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${patient.name}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${patient.ward}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${patient.bed}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${patient.disease}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${patient.nurse}</td>
+          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+            <button class="text-blue-600 hover:text-blue-900 edit-btn" data-id="${patient.id}">Edit</button>
+            <button class="ml-2 text-red-600 hover:text-red-900 delete-btn" data-id="${patient.id}">Delete</button>
+          </td>
+        `;
+        patientsTable.appendChild(row);
+      });
+
+      // Add event listeners to edit and delete buttons
+      document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const patientId = e.target.getAttribute('data-id');
+          editPatient(patientId);
+        });
+      });
+
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const patientId = e.target.getAttribute('data-id');
+          deletePatient(patientId);
+        });
+      });
+    }
+
+    // Edit patient
+    async function editPatient(id) {
+      try {
+        const response = await fetch(`http://localhost:8000/patients`);
+        const patients = await response.json();
+        const patient = patients.find(p => p.id == id);
+        
+        if (patient) {
+          document.getElementById('modalTitle').textContent = 'Edit Patient';
+          document.getElementById('patientId').value = patient.id;
+          document.getElementById('name').value = patient.name;
+          document.getElementById('ward').value = patient.ward;
+          document.getElementById('bed').value = patient.bed;
+          document.getElementById('disease').value = patient.disease;
+          document.getElementById('nurse').value = patient.nurse;
+          patientModal.classList.remove('hidden');
+        }
+      } catch (error) {
+        console.error('Error fetching patient:', error);
+      }
+    }
+
+    // Delete patient
+    async function deletePatient(id) {
+      if (confirm('Are you sure you want to delete this patient?')) {
+        try {
+          const response = await fetch(`http://localhost:8000/patients/${id}`, {
+            method: 'DELETE'
+          });
+          if (response.ok) {
+            fetchPatients();
+          }
+        } catch (error) {
+          console.error('Error deleting patient:', error);
+        }
+      }
+    }
+
+    // Handle form submission
+    patientForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const patientId = document.getElementById('patientId').value;
+      const patientData = {
+        name: document.getElementById('name').value,
+        ward: document.getElementById('ward').value,
+        bed: document.getElementById('bed').value,
+        disease: document.getElementById('disease').value,
+        nurse: document.getElementById('nurse').value
+      };
+
+      try {
+        let response;
+        if (patientId) {
+          // Update existing patient
+          response = await fetch(`http://localhost:8000/patients/${patientId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(patientData)
+          });
+        } else {
+          // Create new patient
+          response = await fetch('http://localhost:8000/patients', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(patientData)
+          });
+        }
+
+        if (response.ok) {
+          patientModal.classList.add('hidden');
+          fetchPatients();
+        }
+      } catch (error) {
+        console.error('Error saving patient:', error);
+      }
+    });
+
+    // Check for critical vitals
+    async function checkCriticalVitals() {
+      try {
+        const response = await fetch('http://localhost:8000/vitals/critical');
+        const criticalVitals = await response.json();
+        
+        if (criticalVitals.length > 0) {
+          alertsSection.classList.remove('hidden');
+          alertsList.innerHTML = '';
+          
+          criticalVitals.forEach(vital => {
+            const alertItem = document.createElement('div');
+            alertItem.className = 'text-sm text-gray-700';
+            alertItem.innerHTML = `
+              <p>Patient ID: ${vital.patient_id} - 
+              Respiration: ${vital.respiration_rate} (${vital.respiration_rate < 10 ? 'Low' : 'High'}), 
+              Pulse: ${vital.pulse_rate} (${vital.pulse_rate < 50 ? 'Low' : 'High'})</p>
+            `;
+            alertsList.appendChild(alertItem);
+          });
+        } else {
+          alertsSection.classList.add('hidden');
+        }
+      } catch (error) {
+        console.error('Error checking critical vitals:', error);
+      }
+    }
+
+    // Simulate vitals update (for demo purposes)
+    async function simulateVitalsUpdate() {
+      try {
+        // Get all patients
+        const patientsResponse = await fetch('http://localhost:8000/patients');
+        const patients = await patientsResponse.json();
+        
+        if (patients.length > 0) {
+          // Generate random vitals for each patient
+          for (const patient of patients) {
+            const respiration = Math.floor(Math.random() * 20) + 8; // 8-28
+            const pulse = Math.floor(Math.random() * 60) + 50; // 50-110
+            
+            // 10% chance of abnormal vitals for demo
+            if (Math.random() < 0.1) {
+              respiration = Math.random() < 0.5 ? Math.floor(Math.random() * 5) + 5 : Math.floor(Math.random() * 10) + 30;
+              pulse = Math.random() < 0.5 ? Math.floor(Math.random() * 10) + 40 : Math.floor(Math.random() * 20) + 120;
+            }
+            
+            // Post vitals
+            await fetch('http://localhost:8000/vitals', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                patient_id: patient.id,
+                respiration_rate: respiration,
+                pulse_rate: pulse
+              })
+            });
+          }
+          
+          // Update charts and check for critical vitals
+          updateCharts();
+          checkCriticalVitals();
+        }
+      } catch (error) {
+        console.error('Error simulating vitals:', error);
+      }
+    }
+
+    // Update charts with latest vitals
+    async function updateCharts() {
+      try {
+        const response = await fetch('http://localhost:8000/vitals');
+        const vitals = await response.json();
+        
+        if (vitals.length > 0) {
+          // Get last 10 readings
+          const lastVitals = vitals.slice(-10);
+          
+          // Update respiration chart
+          respirationChart.data.labels = lastVitals.map((v, i) => `Reading ${i+1}`);
+          respirationChart.data.datasets[0].data = lastVitals.map(v => v.respiration_rate);
+          respirationChart.update();
+          
+          // Update pulse chart
+          pulseChart.data.labels = lastVitals.map((v, i) => `Reading ${i+1}`);
+          pulseChart.data.datasets[0].data = lastVitals.map(v => v.pulse_rate);
+          pulseChart.update();
+        }
+      } catch (error) {
+        console.error('Error updating charts:', error);
+      }
+    }
+  </script>
+</body>
+</html>
