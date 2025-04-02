@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital System - Patient Form</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+  <div class="min-h-screen">
+    <!-- Header -->
+    <header class="bg-white shadow">
+      <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div class="flex items-center">
+          <i class="fas fa-hospital text-2xl text-blue-500 mr-2"></i>
+          <h1 class="text-xl font-bold text-gray-800">Hospital System</h1>
+        </div>
+        <div>
+          <button id="backBtn" class="text-gray-600 hover:text-gray-800">
+            <i class="fas fa-arrow-left mr-1"></i> Back to Dashboard
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+      <div class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <h2 class="text-lg font-semibold text-gray-800" id="formTitle">Add Patient</h2>
+        </div>
+        <div class="p-6">
+          <form id="patientForm">
+            <input type="hidden" id="patientId">
+            <div class="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div class="sm:col-span-3">
+                <label for="name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                <input type="text" name="name" id="name" required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              </div>
+
+              <div class="sm:col-span-2">
+                <label for="ward" class="block text-sm font-medium text-gray-700">Ward Number</label>
+                <input type="text" name="ward" id="ward" required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              </div>
+
+              <div class="sm:col-span-1">
+                <label for="bed" class="block text-sm font-medium text-gray-700">Bed Number</label>
+                <input type="text" name="bed" id="bed" required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              </div>
+
+              <div class="sm:col-span-3">
+                <label for="disease" class="block text-sm font-medium text-gray-700">Disease/Condition</label>
+                <input type="text" name="disease" id="disease" required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              </div>
+
+              <div class="sm:col-span-3">
+                <label for="nurse" class="block text-sm font-medium text-gray-700">Assigned Nurse</label>
+                <input type="text" name="nurse" id="nurse" required
+                  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+              </div>
+            </div>
+
+            <div class="mt-8 flex justify-end">
+              <button type="button" id="cancelBtn" class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Cancel
+              </button>
+              <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Save
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Get patient ID from URL if editing
+      const urlParams = new URLSearchParams(window.location.search);
+      const patientId = urlParams.get('id');
+      
+      if (patientId) {
+        document.getElementById('formTitle').textContent = 'Edit Patient';
+        fetchPatient(patientId);
+      }
+
+      // Event listeners
+      document.getElementById('backBtn').addEventListener('click', () => {
+        window.location.href = '/dashboard.html';
+      });
+
+      document.getElementById('cancelBtn').addEventListener('click', () => {
+        window.location.href = '/dashboard.html';
+      });
+
+      document.getElementById('patientForm').addEventListener('submit', handleFormSubmit);
+    });
+
+    // Fetch patient data
+    async function fetchPatient(id) {
+      try {
+        const response = await fetch(`http://localhost:8000/patients`);
+        const patients = await response.json();
+        const patient = patients.find(p => p.id == id);
+        
+        if (patient) {
+          document.getElementById('patientId').value = patient.id;
+          document.getElementById('name').value = patient.name;
+          document.getElementById('ward').value = patient.ward;
+          document.getElementById('bed').value = patient.bed;
+          document.getElementById('disease').value = patient.disease;
+          document.getElementById('nurse').value = patient.nurse;
+        }
+      } catch (error) {
+        console.error('Error fetching patient:', error);
+        alert('Failed to load patient data');
+      }
+    }
+
+    // Handle form submission
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const patientId = document.getElementById('patientId').value;
+      const patientData = {
+        name: document.getElementById('name').value,
+        ward: document.getElementById('ward').value,
+        bed: document.getElementById('bed').value,
+        disease: document.getElementById('disease').value,
+        nurse: document.getElementById('nurse').value
+      };
+
+      try {
+        let response;
+        if (patientId) {
+          // Update existing patient
+          response = await fetch(`http://localhost:8000/patients/${patientId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(patientData)
+          });
+        } else {
+          // Create new patient
+          response = await fetch('http://localhost:8000/patients', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(patientData)
+          });
+        }
+
+        if (response.ok) {
+          window.location.href = '/dashboard.html';
+        } else {
+          throw new Error('Failed to save patient');
+        }
+      } catch (error) {
+        console.error('Error saving patient:', error);
+        alert('Failed to save patient data');
+      }
+    }
+  </script>
+</body>
+</html>
